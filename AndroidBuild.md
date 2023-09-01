@@ -1,0 +1,149 @@
+# Сборка Android из исходников
+
+## Сборка
+В качестве примера прошивки используется [crDroid](https://github.com/crdroidandroid), исходники для устройства от [garry-rogov](https://github.com/garry-rogov).<br>
+Ситема собирается для устройства Redmi Note 8/8T.
+
+Сборка выполняется в `Ubuntu` или любой другой системе, производной от неё.<br>
+Первоначально нужно установить пакеты, указанные [здесь](https://source.android.com/docs/setup/start/initializing#installing-required-packages-ubuntu-1804):
+```sh
+sudo apt-get install git-core gnupg flex bison build-essential zip curl zlib1g-dev libc6-dev-i386 libncurses5 x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
+```
+Зачастую, команды разработчиков кастомных прошивок дополнительно указвают в манифесте для своих систем, какие пакеты нужно уставновить. Иногда там есть те, которых нет в руководстве от `Google`. Их желательно тоже установить.
+Для `crDroid` перечень пактов указан [здесь](https://github.com/crdroidandroid/android#11-installing-dependencies-and-repo):
+```sh
+sudo apt install bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-gtk3-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+```
+
+Нужно создать структуру каталогов. В качестве примера указано, как это сделано у меня.<br>
+В домашнем каталоге создаём каталог, в котором будет храниться всё, что связано со сборкой:
+```sh
+mkdir ~/AndroidBuild
+```
+Создаём каталог, в котором будут находиться исходники системы - `crDroid`.
+```sh
+mkdir ~/AndroidBuild/crDroid
+```
+
+Для скачивания исходников используется утилита `repo`. Установим её:
+```sh
+mkdir ~/AndroidBuild/bin && curl https://storage.googleapis.com/git-repo-downloads/repo > ~/AndroidBuild/bin/repo && chmod a+x ~/AndroidBuild/bin/repo
+```
+Здесь создаётся подкаталог `bin`, в который скачивается `repo`. На `repo` устанавливаются права, позволяющие запускать его как исполняемый файл.<br>
+Теперь нужно добавить каталог с `repo` в переменные окружения. Что бы это происходило при загрузке системы нужно отредактировать файл `.bashrc`, находящийся в каталоге профиля.
+В самом конце файла нужно добавить строку:
+```sh
+export PATH=~/AndroidBuild/bin:$PATH
+```
+Что бы применить изменения сразу, а не после перезагрузки нужно выполнить в терминале:
+```sh
+source ~/.bashrc
+```
+
+Теперь можно инициализировать локальный репозиторий и скачивать исходники. Для этого в терминале выполнить:
+```sh
+cd ~/AndroidBuild/crDroid
+git config --global user.email "e-mail"
+git config --global user.name "nickname"
+repo init -u https://github.com/crdroidandroid/android.git -b 13.0 --git-lfs
+```
+Здесь переходим в каталог для хранения исходнииков системы, созданный ранее. Указываем, как `git` будет идентифицировать нас - нужно указать адрес электронной почты и псевдоним. Инициализируем репозиторий в каталоге, в котором находимся.<br>
+Команда для инициализации обычно указана в манифесте системы, которую мы собираем. Для `crDroid` она указана [здесь](https://github.com/crdroidandroid/android#12-initializing-repo).
+
+После этого, находясь в каталоге, в котором инициализировали репозиторий, запускаем скачивание исходников системы. В общем виде команда выглядит так:
+```sh
+repo sync
+```
+Я использую:
+```sh
+repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+```
+Рекомендованная авторами прошивки команда указана, опять же, в манифесте системы.
+
+После скачивания исходников системы к ним нужно добавить ещё исходники для конкретного устройства. Для этого в каталоге с исходниками ищем подкаталог `.repo` - он скрытый.
+В нём нужно создать подкаталог `local_manifests` и положить в него xml-файлы, указывающие, откуда качать исходники для устройства. Имена и количество xml-файлов значения не имеют. Важно содержимое.<br>
+Т.к. я использую исходники от `garry-rogov`, то у меня содержимое файла выглядит так:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="garry-rogov"
+          fetch="https://github.com/garry-rogov" />  
+  <!-- Kernel Tree -->
+  <project name="android_kernel_xiaomi_ginkgo" path="kernel/xiaomi/ginkgo" remote="garry-rogov" revision="13" />  
+  <!-- Device Tree -->
+  <project name="android_device_xiaomi_willow" path="device/xiaomi/willow" remote="garry-rogov" revision="13" />
+  <!-- Vendor Tree -->
+  <project name="android_vendor_xiaomi_ginkgo" path="vendor/xiaomi/ginkgo" remote="garry-rogov" revision="13" />  
+</manifest>
+```
+Теперь нужно ещё раз выполнить синхронизацию репозиториев (скачивание исходников):
+```sh
+repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+```
+
+Можно запускать сборку. Для этого в каталоге с исходниками нужно выполнить:
+```sh
+. build/envsetup.sh
+brunch willow
+```
+Если нужно ограничить количество потоков при сборке (в примере - 4), то выполнять:
+```sh
+. build/envsetup.sh
+lunch
+make bacon -j4
+```
+Очень помогает при сборке использование `ccache`. Для его использования перед началом сборки нужно экспортировать несколько параметров:
+```sh
+export USE_CCACHE=1
+export CCACHE_EXEC=/usr/bin/ccache
+export CCACHE_DIR=~/AndroidBuild/.ccache/crDroid
+ccache -M 50G -F 0
+```
+Здесь мы указываем, что нужно использовать `ccache`, где находится его бинарник (обычно этого не требуется и система сама знает, где он находится), где хранится кэш для сборки и размер кэша (эти данные достаточно задать один раз и потом они будут браться из конфиг-файла в каталоге с кэшем).
+
+После окончания сборки файл прошивки будет находится в подкаталоге `out` каталога с исходниками собираемой системы.
+Переопределить его расположение можно самостоятельно, задав значение параметра `OUT_DIR`. Для этого нужно выполнить:
+```sh
+export OUT_DIR="путь_к_каталогу_out"
+```
+  
+## Возможные проблемы при сборке
+1. Если при инициализации репозитория выдаётся ошибка:
+   ```sh
+   /usr/bin/env: 'python': No such file or directory
+   ```
+   то можно сделать следующее:
+   * сделать симлинк на /usr/bin/python
+     ```sh
+     ln -s /usr/bin/python3 /usr/bin/python
+     ```
+   * или, что лучше
+     ```sh
+     sudo apt install python-is-python3
+     ```
+   Информация об этом есть в [офф руководстве](https://source.android.com/docs/setup/download/downloading) и на [stackoverflow](https://stackoverflow.com/questions/3655306/ubuntu-usr-bin-env-python-no-such-file-or-directory).
+
+2. Сборка падает со следующей ошибкой:
+   ```sh
+   FAILED: out/soong/build.ninja
+   ......
+   soong bootstrap failed with: exit status 1
+   ```
+   Возникает скорее всего из-за нехватки оперативной памяти. Где-то в интернете встречалась информация, что на один поток требуется 2.3 - 2.5 Гб RAM.<br>
+   Нужно попробовать добавить файл подкачки. Для этого выполнить:
+   ```sh
+   sudo dd if=/dev/zero of=/swapfile bs=1G count=70 status=progress
+   sudo chmod 0600 /swapfile
+   sudo mkswap /swapfile
+   sudo swapon /swapfile
+   ```
+   Здесь создаём файл размером 70 Гб в корне системы, устанавливаем нужные права на него, "форматируем" его и подключаем.
+   Проверить размер файла подкачки можно командой:
+   ```sh
+   sudo swapon --show
+   ```
+   Если нужно, что бы файл подкачки подключался при загрузке системы, то следует добавить в файл `fstab` строку:
+   ```sh
+   /swapfile   none  swap  defaults  0  0
+   ```
+
