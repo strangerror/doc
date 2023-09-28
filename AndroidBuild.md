@@ -14,7 +14,6 @@ sudo apt-get install git-core gnupg flex bison build-essential zip curl zlib1g-d
 ```sh
 sudo apt install bc bison build-essential ccache curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libwxgtk3.0-gtk3-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
 ```
-
 Нужно создать структуру каталогов. В качестве примера указано, как это сделано у меня.<br>
 В домашнем каталоге создаём каталог, в котором будет храниться всё, что связано со сборкой:
 ```sh
@@ -24,7 +23,6 @@ mkdir ~/AndroidBuild
 ```sh
 mkdir ~/AndroidBuild/crDroid
 ```
-
 Для скачивания исходников используется утилита `repo`. Установим её:
 ```sh
 mkdir ~/AndroidBuild/bin && curl https://storage.googleapis.com/git-repo-downloads/repo > ~/AndroidBuild/bin/repo && chmod a+x ~/AndroidBuild/bin/repo
@@ -76,11 +74,21 @@ repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync 
   <project name="android_vendor_xiaomi_ginkgo" path="vendor/xiaomi/ginkgo" remote="garry-rogov" revision="13" />  
 </manifest>
 ```
-Теперь нужно ещё раз выполнить синхронизацию репозиториев (скачивание исходников):
+Если есть желание добавить камеру MIUI, то нужен ещё один файл со следующим содержимым:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="garry-rogov"
+          fetch="https://github.com/garry-rogov" />
+  <!-- MiuiCamera --> 
+    <project name="android_vendor_miuicamera" path="vendor/miuicamera" remote="garry-rogov" revision="arrow-12.0-a3" />
+</manifest>
+``` 
+Аналогично можно добавить в прошивку любое ПО, главное найти нужный репозиторий.
+Теперь нужно ещё раз выполнить синхронизацию:
 ```sh
 repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
 ```
-
 Можно запускать сборку. Для этого в каталоге с исходниками нужно выполнить:
 ```sh
 . build/envsetup.sh
