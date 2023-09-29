@@ -155,3 +155,16 @@ export OUT_DIR="путь_к_каталогу_out"
    /swapfile   none  swap  defaults  0  0
    ```
 
+3. Ошибка при компиляции `webview.apk`:
+   ```sh
+   external/chromium-webview/prebuilt/arm64/webview.apk: Invalid file ERROR: dump failed because no AndroidManifest.xml found
+   ```
+   Решение - удалить всё, что связано с `webview`` из исходников и выполнить повторно синхронизацию:
+   ```sh
+   rm -rf external/chromium-webview/prebuilt/*
+   rm -rf .repo/projects/external/chromium-webview/prebuilt/*.git
+   rm -rf .repo/project-objects/LineageOS/android_external_chromium-webview_prebuilt_*.git
+   repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+   ```
+   Решение взято с [reddit](https://www.reddit.com/r/LineageOS/comments/11rnaoi/webview_wont_compile_after_the_recent_git_lfs/).<br>
+   Так же можно попробовать [установить](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage) (если не был установлен ранее) `git-lfs` перед выполнением команд, указанных выше.
