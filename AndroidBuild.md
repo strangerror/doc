@@ -159,7 +159,7 @@ export OUT_DIR="путь_к_каталогу_out"
    ```sh
    external/chromium-webview/prebuilt/arm64/webview.apk: Invalid file ERROR: dump failed because no AndroidManifest.xml found
    ```
-   Решение - удалить всё, что связано с `webview`` из исходников и выполнить повторно синхронизацию:
+   Решение - удалить всё, что связано с `webview` из исходников и выполнить повторно синхронизацию:
    ```sh
    rm -rf external/chromium-webview/prebuilt/*
    rm -rf .repo/projects/external/chromium-webview/prebuilt/*.git
