@@ -186,3 +186,21 @@ export OUT_DIR="путь_к_каталогу_out"
    git stash pop
    ```
    Поздробнее можно почитать [здесь](https://www.atlassian.com/ru/git/tutorials/saving-changes/git-stash), [здесь](https://selectel.ru/blog/tutorials/git-stash-manual/) или [здесь](https://git-scm.com/book/en/v2/Git-Tools-Stashing-and-Cleaning).
+
+5. Ошибка при сборке sepolicy:
+   ```sh
+   FAILED: out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil
+   out/host/linux-x86/bin/checkpolicy -C -M -c 30 -o out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil out/soong/.intermediates/system/sepolicy/plat_sepolicy.conf/android_common/plat_sepolicy.conf && cat system/sepolicy/private/technical_debt.cil >>  out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil && out/host/linux-x86/bin/secilc -m -M true -G -c 30 out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil -o /dev/null -f /dev/null # hash of input list: adbae54a02efb1ac28c9b9ece27d8ae5a4fc7adea217e7e24e3ecb8996f196b7
+   neverallow check failed at out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil:20503 from system/sepolicy/private/domain.te:408
+     (neverallow base_typeattr_687 self (cap_userns (dac_read_search)))
+       <root>
+       allow at out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil:22935
+         (allow logpersist self (cap_userns (dac_override dac_read_search sys_nice)))
+
+   neverallow check failed at out/soong/.intermediates/system/sepolicy/plat_sepolicy.cil/android_common/plat_sepolicy.cil:20502 from system/sepolicy/private/domain.te:408
+     (neverallow base_typeattr_687 self (capability (dac_read_search)))
+   ...
+   Failed to generate binary
+   Failed to build policydb
+   ```
+   В качестве <font color="red">**временного**</font> решения можно добавить `SELINUX_IGNORE_NEVERALLOWS := true` в `BoardConfig.mk`.
