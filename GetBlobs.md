@@ -28,7 +28,7 @@ git clone -b lineage-19.1 https://github.com/LineageOS/android_device_xiaomi_sm6
 git clone https://github.com/xpirt/sdat2img
 ```
 
-Если в качестве основы используется crDroid, то момманды будут следующие:
+Если в качестве основы используется crDroid, то комманды будут следующие:
 ```sh
 git clone https://github.com/crdroidandroid/android_tools_extract-utils.git tools/extract-utils
 git clone -b 13.0 https://github.com/crdroidandroid/android_device_xiaomi_ginkgo.git device/xiaomi/ginkgo
