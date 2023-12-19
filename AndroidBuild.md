@@ -172,3 +172,17 @@ export OUT_DIR="путь_к_каталогу_out"
    ```
    Решение взято с [reddit](https://www.reddit.com/r/LineageOS/comments/11rnaoi/webview_wont_compile_after_the_recent_git_lfs/).<br>
    Так же можно попробовать [установить](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage) (если не был установлен ранее) `git-lfs` перед выполнением команд, указанных выше.
+
+4. При выполнении `repo sync` получаем сообщение:
+   ```sh
+   Ваши локальные изменения в указанных файлах будут перезаписаны при переключении на состояние...
+   Сделайте коммит или спрячьте ваши изменения перед переключением веток.
+   ```
+   Решение - перейти в каталог репозитория, с синхронизацией которого возникла проблема (указывается в тексте ошибки), "спрятать" свои изменения, выполнить синхронизацию и веруть изменения обратно:
+   ```sh
+   cd packages/apps/crDroidSettings
+   git stash
+   repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc --all)
+   git stash pop
+   ```
+   Поздробнее можно почитать [здесь](https://www.atlassian.com/ru/git/tutorials/saving-changes/git-stash), [здесь](https://selectel.ru/blog/tutorials/git-stash-manual/) или [здесь](https://git-scm.com/book/en/v2/Git-Tools-Stashing-and-Cleaning).
